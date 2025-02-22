@@ -17,5 +17,10 @@ This is a paragraph of text. It has some **bold** and *italic* words inside of i
     ]
         self.assertEqual(node, expected)
 
+    def test_block_to_block_type(self):
+        node = block_to_block_type('###Eat Bananas')
+        expected = Blocktype.PARAGRAPH
+        self.assertEqual(node, expected)
+
 if __name__ == '__main__':
     unittest.main()
