@@ -1,10 +1,5 @@
 import unittest
-from markdown_blocks import (
-    markdown_to_html_node,
-    markdown_to_blocks,
-    block_to_block_type,
-    BlockType,
-)
+from markdown_blocks import *
 
 
 class TestMarkdownToHTML(unittest.TestCase):
@@ -27,6 +22,24 @@ This is the same paragraph on a new line
                 "* This is a list\n* with items",
             ],
         )
+
+    def test_extract_title(self):
+        node = extract_title("# My Title")
+        expected = ("My Title")
+        self.assertEqual(node,expected)
+
+        markdown = "## Subheader only\nSome content"
+        with self.assertRaises(Exception) as context:
+            extract_title(markdown)
+        # Verify the exception message
+        self.assertEqual(str(context.exception), "No h1 header")
+        
+        markdown = ""
+        with self.assertRaises(Exception) as context:
+            extract_title(markdown)
+        self.assertEqual(str(context.exception), "No h1 header")
+        
+
 
     def test_markdown_to_blocks_newlines(self):
         md = """

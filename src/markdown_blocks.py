@@ -13,6 +13,15 @@ class BlockType(Enum):
     OLIST = "ordered_list"
     ULIST = "unordered_list"
 
+def extract_title(markdown):
+    if not markdown:
+        raise Exception("No h1 header")  # Handle empty input immediately
+    
+    new_lines = markdown.split('\n')
+    for line in new_lines:
+        if line.startswith("# ") and line[2:].strip():
+            return line[2:].strip()
+    raise Exception("No h1 header")
 
 def markdown_to_blocks(markdown):
     blocks = markdown.split("\n\n")
