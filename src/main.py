@@ -1,3 +1,4 @@
+print ("Script Start") 
 import os
 import shutil
 from markdown_blocks import *
@@ -48,35 +49,81 @@ def generate_page(from_path, template_path, dest_path):
         output_file.write(final_content)
         print("writing to destination")
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    print(f"generate_pages_recursive called with: {dir_path_content}, {template_path}, {dest_dir_path}")
+
+    # Check if dir_path_content is a file (base case for recursion)
+    if os.path.isfile(dir_path_content) and dir_path_content.endswith('.md'):
+        # It's a markdown file, so generate the HTML
+        generate_page(dir_path_content, template_path, dest_dir_path)
+        return
+    
+    # Otherwise, it's a directory, so process its contents
+    for entry in os.listdir(dir_path_content):
+        entry_path = os.path.join(dir_path_content, entry)
+        
+        if os.path.isfile(entry_path) and entry.endswith('.md'):
+            # Calculate the corresponding HTML output path
+            relative_path = os.path.relpath(entry_path, dir_path_content)
+            dest_filename = os.path.splitext(relative_path)[0] + '.html'
+            dest_file_path = os.path.join(dest_dir_path, dest_filename)
+            
+            # Make sure the directory exists
+            os.makedirs(os.path.dirname(dest_file_path), exist_ok=True)
+            
+            print(f"Generating page from {entry_path} to {dest_file_path} using {template_path}.")
+            
+            # Generate the HTML page
+            generate_page(entry_path, template_path, dest_file_path)
+        
+        elif os.path.isdir(entry_path):
+            # Create the corresponding output directory
+            new_dest_dir = os.path.join(dest_dir_path, os.path.basename(entry_path))
+            os.makedirs(new_dest_dir, exist_ok=True)
+            
+            # Recursively process this subdirectory
+            generate_pages_recursive(entry_path, template_path, new_dest_dir)            
 def main():
+    print("Main function started")
     try:
         # Get the directory where the script is located
         script_dir = os.path.dirname(os.path.abspath(__file__))
+        print(f"script_dir: {script_dir}")
+        
         # Get the project root directory (one level up from script_dir)
         project_root = os.path.dirname(script_dir)
+        print(f"project_root: {project_root}")
         
         # Define paths relative to project root
         static_dir = os.path.join(project_root, "static")
         public_dir = os.path.join(project_root, "public")
-        content_path = os.path.join(project_root, "content", "index.md")
+        content_dir = os.path.join(project_root, "content")
         template_path = os.path.join(project_root, "template.html")
-        output_path = os.path.join(public_dir, "index.html")
+        
+        print(f"static_dir: {static_dir}")
+        print(f"public_dir: {public_dir}")
+        print(f"content_dir: {content_dir}")
+        print(f"template_path: {template_path}")
 
         # Clean and recreate public directory
+        print("About to clean and recreate public directory")
         if os.path.exists(public_dir):
             shutil.rmtree(public_dir)
         os.mkdir(public_dir)
         
         # Copy static files
+        print("About to copy static files")
         copy_static(static_dir, public_dir)
+        print("Finished copying static files")
         
-        # Generate the page
-        generate_page(content_path, template_path, output_path)
+        # Generate pages recursively
+        print("About to generate pages recursively")
+        generate_pages_recursive(content_dir, template_path, public_dir)
+        print("Finished generating pages recursively")
         
         return 0
     except Exception as e:
         print(f"Error in main: {e}")
         return 1
-
 if __name__ == "__main__":
-    exit(main())
+    main()
